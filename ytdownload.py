@@ -145,7 +145,7 @@ if __name__ == "__main__":
         print(f"\n{'='*70}")
         print("Options:")
         print("  - Type 'best' for best quality")
-        print("  - Type a resolution number (e.g., 720, 1080, 1440)")
+        print("  - Type a resolution number (e.g. 720, 1080, 1440)")
         print(f"{'='*70}")
         
         choice = input("Your choice: ").strip()
