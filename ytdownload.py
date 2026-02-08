@@ -46,16 +46,22 @@ def download_video(url, resolution=None):
         'format': 'bestvideo+bestaudio/best',
         'outtmpl': '%(title)s.%(ext)s',
         'merge_output_format': 'mp4',
-        # Following lines are to turn off extra output for clean display
         'quiet': False,
         'no_warnings': True,
-        # Add headers to bypass YouTube 403 Forbidden error
+        # Use TV client to bypass YouTube's SABR-only web client
+        'extractor_args': {
+            'youtube': {
+                'player_client': ['tv', 'android']  # TV client first, fallback to android
+            }
+        },
+        # Advanced headers
         'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
             'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://www.youtube.com/',
         },
         'socket_timeout': 30,
-        'nocheckcertificate': True,
+        'skip_unavailable_fragments': True,
     }
 
     if resolution:
@@ -65,18 +71,34 @@ def download_video(url, resolution=None):
         print(f"\nDownloading & Extracting Info: {url}")
         print("Please wait...")
         
-        # 'extract_info' will download and also return info
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            
-            # After download is complete, save the info
-            save_info_to_json(info, resolution)
-            
-        print("\n✅ Download & Data Save Complete!")
+        max_retries = 2
+        for attempt in range(max_retries):
+            try:
+                # 'extract_info' will download and also return info
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(url, download=True)
+                    
+                    # After download is complete, save the info
+                    save_info_to_json(info, resolution)
+                    
+                print("\n✅ Download & Data Save Complete!")
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    print(f"\n⚠️  Download failed, retrying... (Attempt {attempt + 2}/{max_retries})")
+                    import time
+                    time.sleep(2)
+                else:
+                    raise e
         
     except Exception as e:
         print("\n❌ Error Occurred:")
-        print(e)
+        print(f"{str(e)}\n")
+        print("Troubleshooting tips:")
+        print("1. Make sure Chrome is closed (if using Chrome cookies)")
+        print("2. Try a different video URL")
+        print("3. Check your internet connection")
+        print("4. Update yt-dlp: pip install --upgrade yt-dlp")
 
 if __name__ == "__main__":
     print("=== YouTube Video Downloader with JSON Log ===")
