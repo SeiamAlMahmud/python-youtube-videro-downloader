@@ -35,160 +35,129 @@ def save_info_to_json(info, requested_res):
     with open(json_filename, 'w', encoding='utf-8') as f:
         json.dump(data_list, f, ensure_ascii=False, indent=4)
     
-    print(f"\n[INFO] Video info saved to '{json_filename}'")
+    print(f"\n[Saved] Video info saved to '{json_filename}'")
 
-def download_video(url, resolution=None, format_spec=None, use_cookies=False):
+def download_video(url, resolution=None, format_spec=None):
     download_folder = 'download'
     if not os.path.exists(download_folder):
         os.makedirs(download_folder)
-        print(f"[INFO] Created '{download_folder}' folder")
+        print(f"[Created] '{download_folder}' folder")
 
-    # Simplified approach: Let yt-dlp choose the best client automatically
-    # Only specify cookies if user wants them
+    # Simple options - NO COOKIES, let yt-dlp auto-select best client
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best' if not format_spec else format_spec,
         'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
         'quiet': False,
         'no_warnings': False,
-        # Let yt-dlp auto-select the best client
-        'http_headers': {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept-Language': 'en-US,en;q=0.9',
-        },
     }
-    
-    # Add cookie support if requested
-    if use_cookies:
-        try:
-            ydl_opts['cookiesfrombrowser'] = ('firefox',)
-            print("[INFO] Using Firefox cookies")
-        except:
-            try:
-                ydl_opts['cookiesfrombrowser'] = ('chrome',)
-                print("[INFO] Using Chrome cookies")
-            except:
-                print("[WARNING] Could not load browser cookies")
 
     if resolution and not format_spec:
         ydl_opts['format'] = f'bestvideo[height<={resolution}]+bestaudio/best[height<={resolution}]'
 
     try:
-        print(f"\n[DOWNLOADING] {url}")
+        print(f"\n[Downloading] {url}")
         print("Please wait...")
         
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             save_info_to_json(info, resolution)
             
-        print("\n[SUCCESS] Download & Data Save Complete!")
+        print("\n[SUCCESS] Download Complete!")
         
     except Exception as e:
-        print("\n[ERROR] Error Occurred:")
+        print("\n[ERROR] Download failed:")
         print(f"{str(e)}\n")
-        print("Troubleshooting tips:")
-        print("1. Update yt-dlp: pip install --upgrade yt-dlp")
-        print("2. Try using browser cookies (Firefox recommended)")
-        print("3. Some videos require account login in browser first")
 
 if __name__ == "__main__":
-    print("=== YouTube Video Downloader (Fixed 2026) ===\n")
-
-    # Check for available browser cookies
-    firefox_path = os.path.expanduser('~\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles')
-    chrome_path = os.path.expanduser('~\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Cookies')
-    
-    has_firefox = os.path.exists(firefox_path)
-    has_chrome = os.path.exists(chrome_path)
-    
-    if has_firefox:
-        print("[INFO] Found Firefox browser")
-    elif has_chrome:
-        print("[INFO] Found Chrome browser")
-    print()
+    print("=" * 60)
+    print("YouTube Video Downloader - Simple & Fast")
+    print("=" * 60)
+    print("Gets all resolutions (144p to 4K) without any login!\n")
 
     while True:
-        video_url = input("YouTube Video Link (or press Enter to exit): ").strip()
+        video_url = input("YouTube Video Link (or Enter to exit): ").strip()
 
         if not video_url:
-            print("Exiting.")
+            print("Goodbye!")
             break
 
-        # Ask about cookies
-        print("\nFor HD quality (720p+), browser cookies are REQUIRED.")
-        print("Make sure Firefox/Chrome is CLOSED before proceeding!")
-        use_cookies_input = input("Use browser cookies? (Y/n): ").strip().lower()
-        use_cookies = use_cookies_input != 'n'
+        # Fetch formats (NO COOKIES - works better!)
+        print("\n[Fetching] Getting available formats...")
         
-        # Fetch formats with cookies if enabled
         preview_opts = {
             'quiet': True,
             'no_warnings': False,
-            'listformats': True,
         }
-        
-        if use_cookies:
-            try:
-                preview_opts['cookiesfrombrowser'] = ('firefox',)
-            except:
-                try:
-                    preview_opts['cookiesfrombrowser'] = ('chrome',)
-                except:
-                    pass
 
         try:
-            print("\n[FETCHING] Getting available formats...")
             with yt_dlp.YoutubeDL(preview_opts) as ydl:
                 info = ydl.extract_info(video_url, download=False)
         except Exception as e:
-            print(f"[WARNING] Could not fetch formats: {e}")
+            print(f"[Warning] Could not fetch formats: {e}")
             print("Will try to download anyway...")
             info = None
 
         if info and 'formats' in info:
-            print(f"\nAvailable formats for: {info.get('title', 'Video')}")
-            print(f"{'ID':10} {'Ext':5} {'Res':7} {'Video':15} {'Audio':15} {'Size':10}")
-            print("-" * 70)
+            print(f"\n{'='*70}")
+            print(f"Video: {info.get('title', 'Unknown')}")
+            print(f"{'='*70}")
+            print(f"{'ID':10} {'Ext':5} {'Res':8} {'Video':20} {'Audio':15} {'Size':10}")
+            print(f"{'-'*70}")
             
-            # Show only useful formats
+            # Filter and show only video formats (skip storyboards)
             shown = 0
             for f in info['formats']:
-                # Skip storyboard and image-only formats
+                # Skip useless formats
+                if 'mhtml' in f.get('ext', ''):
+                    continue
                 if f.get('format_note') == 'storyboard':
                     continue
-                if 'mhtml' in f.get('ext', ''):
+                if not f.get('vcodec') and not f.get('acodec'):
+                    continue
+                if f.get('vcodec') == 'none' and f.get('acodec') == 'none':
                     continue
                     
                 fid = str(f.get('format_id', ''))
                 ext = f.get('ext', '')
                 height = f.get('height') or ''
-                res = f"{height}p" if height else f.get('resolution', 'audio')
-                vcodec = f.get('vcodec', 'none')[:14]
+                res = f"{height}p" if height else 'audio'
+                vcodec = f.get('vcodec', 'none')[:19]
                 acodec = f.get('acodec', 'none')[:14]
                 fs = f.get('filesize') or f.get('filesize_approx') or ''
                 if isinstance(fs, int):
                     fs = f"{round(fs/1024/1024,1)}MB"
                     
-                print(f"{fid:10} {ext:5} {res:7} {vcodec:15} {acodec:15} {str(fs):10}")
+                print(f"{fid:10} {ext:5} {res:8} {vcodec:20} {acodec:15} {str(fs):10}")
                 shown += 1
                 
-                if shown >= 30:  # Limit output
+                if shown >= 35:
                     print("... (more formats available)")
                     break
 
-        # Ask user what to download
-        print("\nOptions:")
+            # Show available resolutions summary
+            video_formats = [f for f in info['formats'] if f.get('height')]
+            if video_formats:
+                resolutions = sorted(set(f['height'] for f in video_formats), reverse=True)
+                print(f"\n[Available Resolutions] {resolutions}")
+
+        # Ask what to download
+        print(f"\n{'='*70}")
+        print("Options:")
         print("  - Type 'best' for best quality")
-        print("  - Type a resolution (e.g., 720, 1080)")
-        print("  - Type a format ID from the list above")
+        print("  - Type a resolution number (e.g., 720, 1080, 1440)")
+        print(f"{'='*70}")
+        
         choice = input("Your choice: ").strip()
 
         if choice.lower() == 'best' or choice == '':
-            download_video(video_url, use_cookies=use_cookies)
+            download_video(video_url)
         elif choice.isdigit():
-            download_video(video_url, resolution=choice, use_cookies=use_cookies)
+            download_video(video_url, resolution=choice)
         else:
-            # Format ID
-            download_video(video_url, format_spec=choice, use_cookies=use_cookies)
+            # Format ID provided
+            download_video(video_url, format_spec=f"{choice}+bestaudio/best")
 
-        print("\nReady for next download.\n")
+        print("\n" + "="*60)
+        print("Ready for next download!")
+        print("="*60 + "\n")
