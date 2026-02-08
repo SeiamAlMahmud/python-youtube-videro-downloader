@@ -31,5 +31,27 @@
         "upload_date": "20251214",
         "resolution_requested": "Best Available",
         "file_name": null
+    },
+    {
+        "download_date": "2026-02-09 01:24:10",
+        "title": "The DARK Side of ChatGPT | Dhruv Rathee",
+        "url": "https://www.youtube.com/watch?v=6usRtfzyLa8",
+        "uploader": "Dhruv Rathee",
+        "duration_seconds": 1349,
+        "view_count": 4829296,
+        "upload_date": "20251214",
+        "resolution_requested": "1080",
+        "file_name": null
+    },
+    {
+        "download_date": "2026-02-09 01:27:33",
+        "title": "Master Golang in One Video | Complete Go Course + Real-world API Project in Hindi | Coder's Gyan",
+        "url": "https://www.youtube.com/watch?v=yZgwW6Yuc_E",
+        "uploader": "Coder's Gyan",
+        "duration_seconds": 33925,
+        "view_count": 134283,
+        "upload_date": "20250418",
+        "resolution_requested": "1080",
+        "file_name": null
     }
 ]

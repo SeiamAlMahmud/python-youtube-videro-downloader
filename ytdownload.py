@@ -108,18 +108,25 @@ def download_video(url, resolution=None):
 
 if __name__ == "__main__":
     print("=== YouTube Video Downloader with JSON Log ===")
-    
-    video_url = input("YouTube Video Link: ").strip()
-    
-    if not video_url:
-        print("No link provided. Exiting.")
-        sys.exit()
 
-    print("\nResolution (e.g., 1080, 720) [Press Enter for Best]:")
-    res_input = input("Resolution: ").strip()
+    while True:
+        # 1. Get link input
+        video_url = input("YouTube Video Link (or press Enter to exit): ").strip()
 
-    if res_input:
-        download_video(video_url, resolution=res_input)
-    else:
-        print("\nSelecting Best Quality...")
-        download_video(video_url)
+        if not video_url:
+            print("No link provided. Exiting.")
+            break
+
+        # 2. Get resolution input
+        print("\nResolution (e.g., 1080, 720) [Press Enter for Best]:")
+        res_input = input("Resolution: ").strip()
+
+        # 3. Perform download
+        if res_input:
+            download_video(video_url, resolution=res_input)
+        else:
+            print("\nSelecting Best Quality...")
+            download_video(video_url)
+
+        # Loop back to prompt for next video (default behavior)
+        print("\nReady for next download.\n")

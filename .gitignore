@@ -1,0 +1,13 @@
+# Ignore downloaded videos folder
+download/
+
+# Python virtual environment
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.$py.class
+
+# VSCode
+.vscode/
