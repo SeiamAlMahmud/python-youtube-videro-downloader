@@ -42,9 +42,15 @@ def save_info_to_json(info, requested_res):
     print(f"\n📄 Video info saved to '{json_filename}'")
 
 def download_video(url, resolution=None):
+    # Create download folder if it doesn't exist
+    download_folder = 'download'
+    if not os.path.exists(download_folder):
+        os.makedirs(download_folder)
+        print(f"📁 Created '{download_folder}' folder")
+    
     ydl_opts = {
         'format': 'bestvideo+bestaudio/best',
-        'outtmpl': '%(title)s.%(ext)s',
+        'outtmpl': os.path.join(download_folder, '%(title)s.%(ext)s'),
         'merge_output_format': 'mp4',
         'quiet': False,
         'no_warnings': True,
