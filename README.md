@@ -2,6 +2,9 @@
 
 Simple YouTube video downloader that gets all resolutions (144p to 4K) without any login or cookies!
 
+```bash
+python -m venv venv
+```
 ## Usage
 
 ```bash
